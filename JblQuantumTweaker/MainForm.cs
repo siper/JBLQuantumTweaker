@@ -40,14 +40,11 @@ namespace JblQuantumTweaker
             {
                 _device.OpenDevice();
             }
+            Program.hidConnected = true;
             _device.MonitorDeviceEvents = true;
             _device.ReadReport(OnReport);
             this.deviceStatusLable.Text = "Устройство подключено";
         }
-
-        byte lBattery = 0;
-        byte rBattery = 0;
-        byte caseBattery = 0;
 
         bool previousActive = false;
 
@@ -57,45 +54,46 @@ namespace JblQuantumTweaker
             var id = report.ReportId;
             byte[] data = report.Data.Take(6).ToArray();
 
-            var active = false;
-
-            if (data[1] != lBattery && data[1] != 0)
+            if (data[1] != Program.lBattery && data[1] != 0)
             {
-                lBattery = data[1];
+                Program.lBattery = data[1];
+                Program.updateTooltip();
             }
 
-            if (data[3] != rBattery)
+            if (data[3] != Program.rBattery)
             {
-                rBattery = data[3];
+                Program.rBattery = data[3];
+                Program.updateTooltip();
             }
 
-            if (data[5] != caseBattery)
+            if (data[5] != Program.caseBattery)
             {
-                caseBattery = data[5];
+                Program.caseBattery = data[5];
+                Program.updateTooltip();
             }
 
-            //this.chargeLabel.BeginInvoke(new Action(() =>
-            //{
-            //    this.chargeLabel.Text = "Л:" + lBattery + " П:" + rBattery + " К:" + caseBattery;
-            //}));
+            if (id != 11) { 
+                _device.ReadReport(OnReport);
+                return; 
+            }
 
-            if (id != 11) { _device.ReadReport(OnReport); return; }
-
-            active = (data[0] == 0 && data[2] == 0xff)
+            Program.headphonesConnected = (data[0] == 0 && data[2] == 0xff)
                 || (data[0] == 0xff && data[2] == 0)
                 || (data[0] == 0xff && data[2] == 0)
                 || (data[0] == 0 && data[2] == 1)
                 || (data[0] == 0 && data[2] == 0)
                 || (data[0] == 1 && data[2] == 0);
 
-            if (active == previousActive)
+            if (Program.headphonesConnected == previousActive)
             {
                 _device.ReadReport(OnReport);
                 return;
             }
-            previousActive = active;
+            previousActive = Program.headphonesConnected;
 
-            if (active)
+            Program.updateTooltip();
+
+            if (Program.headphonesConnected)
             {
                 this.jblDeviceComboBox.BeginInvoke(new Action(() =>
                 {
@@ -115,7 +113,7 @@ namespace JblQuantumTweaker
             this.deviceStatusLable.BeginInvoke(new Action(() =>
             {
                 string activeLable;
-                if (active)
+                if (Program.headphonesConnected)
                 {
                     activeLable = "подключено";
                 }

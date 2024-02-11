@@ -6,6 +6,29 @@ namespace JblQuantumTweaker
 {
     internal static class Program
     {
+        private static MyCustomApplicationContext applicationContext;
+
+        public static bool hidConnected { get; set; }
+        public static bool headphonesConnected { get; set; }
+
+        public static int lBattery { get; set; }
+        public static int rBattery { get; set; }
+        public static int caseBattery { get; set; }
+
+        public static void updateTooltip()
+        {
+            if (!hidConnected) {
+                applicationContext.trayIcon.Text = "HID не подключен";
+                return;
+            }
+            if (!headphonesConnected)
+            {
+                applicationContext.trayIcon.Text = "Наушники не подключены";
+                return;
+            }
+            applicationContext.trayIcon.Text = string.Format("Левый: {0}%\nПравый: {1}%\nКейс: {2}%", lBattery, rBattery, caseBattery);
+        }
+
         /// <summary>
         /// Главная точка входа для приложения.
         /// </summary>
@@ -14,13 +37,14 @@ namespace JblQuantumTweaker
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MyCustomApplicationContext());
+            applicationContext = new MyCustomApplicationContext();
+            Application.Run(applicationContext);
         }
     }
 
     public class MyCustomApplicationContext : ApplicationContext
     {
-        private NotifyIcon trayIcon;
+        public NotifyIcon trayIcon;
 
         public MyCustomApplicationContext()
         {
@@ -34,6 +58,7 @@ namespace JblQuantumTweaker
                 ),
                 Visible = true
             };
+            trayIcon.Text = "Test";
             trayIcon.MouseClick += new MouseEventHandler(_TrayIcon_Click);
             MainForm = new MainForm();
         }

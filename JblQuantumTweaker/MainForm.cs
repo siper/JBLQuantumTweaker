@@ -30,7 +30,15 @@ namespace JblQuantumTweaker
             int ProductId = 0x208A;
             var allDevices = HidDevices.Enumerate(VendorId, ProductId);
 
-            _device = allDevices.FirstOrDefault();
+            foreach (var device in allDevices)
+            {
+                if((ushort) device.Capabilities.UsagePage == 0xff13)
+                {
+                    _device = device;
+                    break;
+                }
+            }
+
             if (_device == null || !_device.IsConnected)
             {
                 this.deviceStatusLable.Text = "Устройство не подключено";
